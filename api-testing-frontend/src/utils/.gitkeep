@@ -1,0 +1,4 @@
+// Placeholder — utility files will be added progressively
+// jsonFormatter.js — pretty-print and validate JSON strings
+// validators.js    — URL and input validation helpers
+// constants.js     — HTTP methods, status codes, color maps

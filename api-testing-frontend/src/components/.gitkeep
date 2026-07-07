@@ -1,0 +1,6 @@
+// Placeholder — components will be added from Commit 5 onwards
+// Sidebar/     — CollectionSidebar, CollectionItem, SearchBar
+// Navbar/      — TopNavbar, ThemeToggle
+// RequestEditor/ — MethodDropdown, URLInput, HeadersTab, ParamsTab, BodyTab
+// ResponseViewer/ — StatusBadge, ResponseBody, ResponseHeaders
+// common/      — Modal, Button, Spinner, Toast, Skeleton

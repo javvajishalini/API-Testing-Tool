@@ -1,0 +1,38 @@
+# =============================================
+# API Testing Tool — Root .gitignore
+# =============================================
+
+# ---- Backend (Maven / Spring Boot) ----
+api-testing-backend/target/
+api-testing-backend/.mvn/wrapper/maven-wrapper.jar
+api-testing-backend/*.log
+api-testing-backend/logs/
+
+# ---- Frontend (Node / Vite) ----
+api-testing-frontend/node_modules/
+api-testing-frontend/dist/
+api-testing-frontend/.env
+api-testing-frontend/.env.local
+api-testing-frontend/.env.production
+
+# ---- IDE ----
+.idea/
+.vscode/settings.json
+*.iml
+*.iws
+
+# ---- OS ----
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ---- Logs ----
+*.log
+npm-debug.log*
+yarn-debug.log*
+
+# ---- Misc ----
+*.class
+*.jar
+!**/src/main/**/target/
+!**/src/test/**/target/

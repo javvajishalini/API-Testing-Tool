@@ -1,0 +1,4 @@
+// Placeholder — service files will be added in Commit 3+
+// collectionService.js — CRUD operations for collections via Axios
+// requestService.js    — CRUD operations for requests via Axios
+// executionService.js  — API execution (POST /execute) via Axios

@@ -1,0 +1,145 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* =============================================
+   Global Base Styles
+   ============================================= */
+@layer base {
+  html {
+    @apply scroll-smooth;
+  }
+
+  body {
+    @apply bg-dark-950 text-dark-100 font-sans antialiased;
+    @apply transition-colors duration-300;
+  }
+
+  /* Custom scrollbar */
+  ::-webkit-scrollbar {
+    @apply w-1.5 h-1.5;
+  }
+
+  ::-webkit-scrollbar-track {
+    @apply bg-dark-900;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    @apply bg-dark-600 rounded-full;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-dark-500;
+  }
+
+  /* Selection */
+  ::selection {
+    @apply bg-primary-600/30 text-primary-100;
+  }
+}
+
+/* =============================================
+   Reusable Component Classes
+   ============================================= */
+@layer components {
+  /* Glassmorphism card */
+  .glass-card {
+    @apply bg-dark-800/60 backdrop-blur-sm border border-dark-700/50 rounded-xl;
+  }
+
+  /* Input fields */
+  .input-field {
+    @apply w-full bg-dark-900 border border-dark-700 rounded-lg px-3 py-2
+           text-dark-100 placeholder-dark-500 text-sm
+           focus:outline-none focus:ring-2 focus:ring-primary-500/50 focus:border-primary-500
+           transition-all duration-200;
+  }
+
+  /* Buttons */
+  .btn-primary {
+    @apply bg-primary-600 hover:bg-primary-500 text-white
+           px-4 py-2 rounded-lg text-sm font-medium
+           transition-all duration-200 active:scale-95
+           focus:outline-none focus:ring-2 focus:ring-primary-500/50;
+  }
+
+  .btn-secondary {
+    @apply bg-dark-700 hover:bg-dark-600 text-dark-200
+           px-4 py-2 rounded-lg text-sm font-medium
+           transition-all duration-200 active:scale-95
+           focus:outline-none focus:ring-2 focus:ring-dark-500/50;
+  }
+
+  .btn-danger {
+    @apply bg-red-600/20 hover:bg-red-600/30 text-red-400
+           border border-red-500/30 hover:border-red-500/50
+           px-4 py-2 rounded-lg text-sm font-medium
+           transition-all duration-200 active:scale-95;
+  }
+
+  .btn-ghost {
+    @apply hover:bg-dark-700/60 text-dark-400 hover:text-dark-200
+           px-2 py-1.5 rounded-md text-sm
+           transition-all duration-150;
+  }
+
+  /* HTTP Method badges */
+  .method-badge {
+    @apply inline-flex items-center px-2.5 py-0.5 rounded text-xs font-bold uppercase tracking-wide font-mono;
+  }
+
+  .method-GET    { @apply bg-get/10    text-get    border border-get/30; }
+  .method-POST   { @apply bg-post/10   text-post   border border-post/30; }
+  .method-PUT    { @apply bg-put/10    text-put    border border-put/30; }
+  .method-DELETE { @apply bg-delete/10 text-delete border border-delete/30; }
+  .method-PATCH  { @apply bg-patch/10  text-patch  border border-patch/30; }
+
+  /* Status code badges */
+  .status-2xx { @apply text-emerald-400 bg-emerald-400/10; }
+  .status-3xx { @apply text-blue-400    bg-blue-400/10; }
+  .status-4xx { @apply text-amber-400   bg-amber-400/10; }
+  .status-5xx { @apply text-red-400     bg-red-400/10; }
+
+  /* Tabs */
+  .tab-btn {
+    @apply px-4 py-2 text-sm font-medium border-b-2 transition-all duration-150
+           text-dark-400 border-transparent hover:text-dark-200 hover:border-dark-500;
+  }
+
+  .tab-btn-active {
+    @apply text-primary-400 border-primary-500;
+  }
+
+  /* Sidebar item */
+  .sidebar-item {
+    @apply flex items-center gap-2 w-full px-3 py-2 rounded-lg text-sm
+           text-dark-400 hover:text-dark-200 hover:bg-dark-700/50
+           transition-all duration-150 cursor-pointer;
+  }
+
+  .sidebar-item-active {
+    @apply bg-primary-600/15 text-primary-300 border-l-2 border-primary-500;
+  }
+}
+
+/* =============================================
+   Utility Extensions
+   ============================================= */
+@layer utilities {
+  .text-gradient {
+    @apply bg-gradient-to-r from-primary-400 to-violet-400 bg-clip-text text-transparent;
+  }
+
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+
+  .no-select {
+    user-select: none;
+    -webkit-user-select: none;
+  }
+}

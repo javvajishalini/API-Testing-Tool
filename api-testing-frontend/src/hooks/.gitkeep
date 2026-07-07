@@ -1,0 +1,4 @@
+// Placeholder — hook files will be added from Commit 3 onwards
+// useCollections.js — data fetching hook for collections list
+// useRequests.js    — data fetching hook for requests in a collection
+// useExecution.js   — hook for handling API execution + response state
