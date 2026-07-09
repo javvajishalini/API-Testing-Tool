@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import KeyValueEditor from './KeyValueEditor';
 import { FiSave } from 'react-icons/fi';
+import toast from 'react-hot-toast';
 
 const RequestEditor = ({ activeRequest, onSave, collections, onExecute, isExecuting }) => {
   const [name, setName] = useState('New Request');
@@ -48,7 +49,24 @@ const RequestEditor = ({ activeRequest, onSave, collections, onExecute, isExecut
   const tabs = ['Params', 'Headers', 'Body'];
 
   const handleSend = () => {
-    if (!url.trim()) return;
+    if (!url.trim()) {
+      toast.error('URL cannot be empty');
+      return;
+    }
+
+    if (!url.startsWith('http://') && !url.startsWith('https://')) {
+      toast.error('URL must start with http:// or https://');
+      return;
+    }
+
+    if (body && body.trim() !== '') {
+      try {
+        JSON.parse(body);
+      } catch (e) {
+        toast.error('Request body is not valid JSON');
+        return;
+      }
+    }
     
     const convertToMap = (pairs) => {
       const map = {};
@@ -68,6 +86,25 @@ const RequestEditor = ({ activeRequest, onSave, collections, onExecute, isExecut
   };
 
   const handleSave = () => {
+    if (!name.trim()) {
+      toast.error('Request name is required');
+      return;
+    }
+
+    if (url && !url.startsWith('http://') && !url.startsWith('https://')) {
+      toast.error('URL must start with http:// or https://');
+      return;
+    }
+
+    if (body && body.trim() !== '') {
+      try {
+        JSON.parse(body);
+      } catch (e) {
+        toast.error('Request body is not valid JSON');
+        return;
+      }
+    }
+
     // Serialize headers and queryParams to string for DB storage
     const serializedHeaders = JSON.stringify(headers.filter(h => h.key.trim() !== ''));
     const serializedParams = JSON.stringify(queryParams.filter(p => p.key.trim() !== ''));
