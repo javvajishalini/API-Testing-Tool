@@ -79,7 +79,7 @@ const ResponseViewer = ({ response, isExecuting }) => {
       
       <div className="flex-1 p-4 overflow-y-auto custom-scrollbar">
         {activeTab === 'Body' && (
-          <pre className="font-mono text-sm text-dark-100 whitespace-pre-wrap">
+          <pre className="font-mono text-sm text-dark-100 whitespace-pre-wrap animate-fade-in">
             {(() => {
               if (isRaw) return response.body || 'No response body.';
               try {
@@ -94,7 +94,7 @@ const ResponseViewer = ({ response, isExecuting }) => {
         )}
         
         {activeTab === 'Headers' && (
-          <div className="w-full text-sm border border-dark-800 rounded-lg overflow-hidden">
+          <div className="w-full text-sm border border-dark-800 rounded-lg overflow-hidden animate-fade-in">
             <table className="w-full text-left border-collapse">
               <thead className="bg-dark-900 border-b border-dark-800 text-dark-300">
                 <tr>
@@ -115,7 +115,7 @@ const ResponseViewer = ({ response, isExecuting }) => {
         )}
         
         {activeTab === 'Cookies' && (
-          <div className="text-dark-500 text-sm">No cookies parsed.</div>
+          <div className="text-dark-500 text-sm animate-fade-in">No cookies parsed.</div>
         )}
       </div>
     </div>

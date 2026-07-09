@@ -197,21 +197,21 @@ const RequestEditor = ({ activeRequest, onSave, collections, onExecute, isExecut
       {/* Tab Content */}
       <div className="flex-1 overflow-y-auto p-4 custom-scrollbar">
         {activeTab === 'Params' && (
-          <div>
+          <div className="animate-fade-in">
             <h3 className="text-sm font-medium text-dark-300 mb-3">Query Parameters</h3>
             <KeyValueEditor pairs={queryParams} onChange={setQueryParams} />
           </div>
         )}
         
         {activeTab === 'Headers' && (
-          <div>
+          <div className="animate-fade-in">
             <h3 className="text-sm font-medium text-dark-300 mb-3">Headers</h3>
             <KeyValueEditor pairs={headers} onChange={setHeaders} />
           </div>
         )}
         
         {activeTab === 'Body' && (
-          <div className="h-full flex flex-col">
+          <div className="h-full flex flex-col animate-fade-in">
             <div className="flex items-center justify-between mb-2">
               <h3 className="text-sm font-medium text-dark-300">JSON Body</h3>
               <select className="bg-dark-800 border border-dark-700 text-dark-200 rounded px-2 py-1 outline-none text-xs">
