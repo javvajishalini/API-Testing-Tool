@@ -18,8 +18,8 @@ public class ApiRequestController {
         this.requestService = requestService;
     }
 
-    @GetMapping("/collection/{collectionId}")
-    public ResponseEntity<List<ApiRequestDto>> getRequestsByCollectionId(@PathVariable Long collectionId) {
+    @GetMapping
+    public ResponseEntity<List<ApiRequestDto>> getRequestsByCollectionId(@RequestParam Long collectionId) {
         return ResponseEntity.ok(requestService.getRequestsByCollectionId(collectionId));
     }
 
