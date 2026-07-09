@@ -1,10 +1,13 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import KeyValueEditor from './KeyValueEditor';
+import { FiSave } from 'react-icons/fi';
 
-const RequestEditor = ({ onExecute, isExecuting }) => {
+const RequestEditor = ({ activeRequest, onSave, collections, onExecute, isExecuting }) => {
+  const [name, setName] = useState('New Request');
   const [method, setMethod] = useState('GET');
   const [url, setUrl] = useState('https://jsonplaceholder.typicode.com/posts/1');
   const [activeTab, setActiveTab] = useState('Params');
+  const [collectionId, setCollectionId] = useState('');
   
   const [queryParams, setQueryParams] = useState([
     { id: 1, key: '', value: '', isActive: true }
@@ -16,12 +19,37 @@ const RequestEditor = ({ onExecute, isExecuting }) => {
   
   const [body, setBody] = useState('{\n  \n}');
 
+  // Load request from DB into editor state
+  useEffect(() => {
+    if (activeRequest) {
+      setName(activeRequest.name || 'New Request');
+      setMethod(activeRequest.method || 'GET');
+      setUrl(activeRequest.url || '');
+      setCollectionId(activeRequest.collectionId || '');
+      setBody(activeRequest.body || '');
+
+      // Parse JSON arrays for headers and query parameters
+      try {
+        const parsedHeaders = JSON.parse(activeRequest.headers || '[]');
+        setHeaders(parsedHeaders.length ? parsedHeaders.map((h, i) => ({ id: i, ...h })) : [{ id: 1, key: '', value: '', isActive: true }]);
+      } catch (e) {
+        setHeaders([{ id: 1, key: '', value: '', isActive: true }]);
+      }
+
+      try {
+        const parsedParams = JSON.parse(activeRequest.queryParams || '[]');
+        setQueryParams(parsedParams.length ? parsedParams.map((p, i) => ({ id: i, ...p })) : [{ id: 1, key: '', value: '', isActive: true }]);
+      } catch (e) {
+        setQueryParams([{ id: 1, key: '', value: '', isActive: true }]);
+      }
+    }
+  }, [activeRequest]);
+
   const tabs = ['Params', 'Headers', 'Body'];
 
   const handleSend = () => {
     if (!url.trim()) return;
     
-    // Convert arrays to objects for the backend DTO
     const convertToMap = (pairs) => {
       const map = {};
       pairs.filter(p => p.isActive && p.key.trim() !== '').forEach(p => {
@@ -39,8 +67,55 @@ const RequestEditor = ({ onExecute, isExecuting }) => {
     });
   };
 
+  const handleSave = () => {
+    // Serialize headers and queryParams to string for DB storage
+    const serializedHeaders = JSON.stringify(headers.filter(h => h.key.trim() !== ''));
+    const serializedParams = JSON.stringify(queryParams.filter(p => p.key.trim() !== ''));
+
+    onSave({
+      id: activeRequest?.id,
+      name,
+      method,
+      url,
+      headers: serializedHeaders,
+      queryParams: serializedParams,
+      body,
+      collectionId: collectionId ? parseInt(collectionId) : null
+    });
+  };
+
   return (
     <div className="flex-1 flex flex-col min-w-0 border-r border-dark-800 bg-dark-900 h-full">
+      {/* Request Header Configuration (Name, Collection & Save) */}
+      <div className="px-4 py-3 border-b border-dark-800 flex flex-wrap items-center gap-3 bg-dark-950 shrink-0">
+        <input 
+          type="text" 
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          placeholder="Request Name"
+          className="bg-dark-800 border border-dark-700 text-white rounded px-3 py-1.5 outline-none focus:border-primary-500 font-semibold text-sm w-48"
+        />
+
+        <select
+          value={collectionId}
+          onChange={(e) => setCollectionId(e.target.value)}
+          className="bg-dark-800 border border-dark-700 text-dark-300 rounded px-3 py-1.5 outline-none focus:border-primary-500 text-xs font-medium cursor-pointer"
+        >
+          <option value="">No Collection</option>
+          {collections.map(col => (
+            <option key={col.id} value={col.id}>{col.name}</option>
+          ))}
+        </select>
+
+        <button 
+          onClick={handleSave}
+          className="flex items-center gap-1.5 bg-dark-800 hover:bg-dark-700 border border-dark-700 text-white text-xs font-semibold px-3 py-1.5 rounded transition-colors shadow-glow ml-auto"
+        >
+          <FiSave />
+          Save
+        </button>
+      </div>
+
       {/* URL Bar */}
       <div className="p-4 border-b border-dark-800 flex items-center gap-2 bg-dark-950 shrink-0">
         <select 
@@ -109,7 +184,7 @@ const RequestEditor = ({ onExecute, isExecuting }) => {
             <textarea
               value={body}
               onChange={(e) => setBody(e.target.value)}
-              className="flex-1 w-full bg-dark-950 border border-dark-800 rounded-lg p-4 font-mono text-sm text-dark-100 outline-none focus:border-primary-500 resize-none"
+              className="flex-1 w-full bg-dark-950 border border-dark-800 rounded-lg p-4 font-mono text-sm text-dark-100 outline-none focus:border-primary-500 resize-none min-h-[200px]"
               spellCheck="false"
             />
           </div>
