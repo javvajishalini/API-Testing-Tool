@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import KeyValueEditor from './KeyValueEditor';
 
-const RequestEditor = () => {
+const RequestEditor = ({ onExecute, isExecuting }) => {
   const [method, setMethod] = useState('GET');
-  const [url, setUrl] = useState('');
+  const [url, setUrl] = useState('https://jsonplaceholder.typicode.com/posts/1');
   const [activeTab, setActiveTab] = useState('Params');
   
   const [queryParams, setQueryParams] = useState([
@@ -17,6 +17,27 @@ const RequestEditor = () => {
   const [body, setBody] = useState('{\n  \n}');
 
   const tabs = ['Params', 'Headers', 'Body'];
+
+  const handleSend = () => {
+    if (!url.trim()) return;
+    
+    // Convert arrays to objects for the backend DTO
+    const convertToMap = (pairs) => {
+      const map = {};
+      pairs.filter(p => p.isActive && p.key.trim() !== '').forEach(p => {
+        map[p.key.trim()] = p.value;
+      });
+      return map;
+    };
+
+    onExecute({
+      method,
+      url,
+      headers: convertToMap(headers),
+      queryParams: convertToMap(queryParams),
+      body: body.trim() === '' ? null : body
+    });
+  };
 
   return (
     <div className="flex-1 flex flex-col min-w-0 border-r border-dark-800 bg-dark-900 h-full">
@@ -36,10 +57,15 @@ const RequestEditor = () => {
           placeholder="Enter request URL" 
           value={url}
           onChange={(e) => setUrl(e.target.value)}
+          onKeyDown={(e) => e.key === 'Enter' && handleSend()}
           className="flex-1 bg-dark-800 border border-dark-700 text-white rounded px-4 py-2 outline-none focus:border-primary-500 font-mono text-sm"
         />
-        <button className="bg-primary-600 hover:bg-primary-500 text-white font-medium px-6 py-2 rounded transition-colors shadow-glow">
-          Send
+        <button 
+          onClick={handleSend}
+          disabled={isExecuting}
+          className={`font-medium px-6 py-2 rounded transition-colors shadow-glow ${isExecuting ? 'bg-primary-800 text-primary-200 cursor-wait' : 'bg-primary-600 hover:bg-primary-500 text-white'}`}
+        >
+          {isExecuting ? 'Sending...' : 'Send'}
         </button>
       </div>
       

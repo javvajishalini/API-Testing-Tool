@@ -21,6 +21,7 @@ export const requestService = {
   create: (data) => api.post('/requests', data).then(res => res.data),
   update: (id, data) => api.put(`/requests/${id}`, data).then(res => res.data),
   delete: (id) => api.delete(`/requests/${id}`).then(res => res.data),
+  execute: (data) => api.post('/execute', data).then(res => res.data),
 };
 
 export default api;
