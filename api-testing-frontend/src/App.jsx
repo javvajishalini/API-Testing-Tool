@@ -15,6 +15,8 @@ function App() {
       <AppProvider>
         <Routes>
           <Route path="/"               element={<Dashboard />} />
+          <Route path="/collections/:collectionId" element={<Dashboard />} />
+          <Route path="/requests/:requestId"    element={<Dashboard />} />
           <Route path="/settings"       element={<Settings />} />
           <Route path="*"               element={<NotFound />} />
         </Routes>

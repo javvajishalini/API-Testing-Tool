@@ -1,44 +1,40 @@
-/**
- * Dashboard page — the main layout of the application.
- * This is a placeholder that will be fully implemented in Commit 5
- * when the full layout (Sidebar + RequestEditor + ResponseViewer) is built.
- *
- * For now, it shows a "coming soon" screen to verify routing works.
- */
+import React from 'react';
+import { useParams } from 'react-router-dom';
+import MainLayout from '../components/layout/MainLayout';
+import RequestEditor from '../components/editor/RequestEditor';
+import ResponseViewer from '../components/viewer/ResponseViewer';
+
 function Dashboard() {
+  const { collectionId, requestId } = useParams();
+
   return (
-    <div className="flex h-screen items-center justify-center bg-dark-950">
-      <div className="text-center animate-fade-in">
-        {/* Logo */}
-        <div className="mb-6 flex items-center justify-center gap-3">
-          <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary-500 to-violet-500 flex items-center justify-center shadow-glow">
-            <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-                d="M13 10V3L4 14h7v7l9-11h-7z" />
-            </svg>
-          </div>
-          <h1 className="text-3xl font-bold text-gradient">APIFlow</h1>
+    <MainLayout>
+      {/* We can use CSS Grid or Flexbox to place Editor and Viewer */}
+      <div className="flex-1 flex flex-col lg:flex-row w-full h-full overflow-hidden">
+        <div className="flex-1 min-w-0 flex flex-col">
+          {(!collectionId && !requestId) ? (
+            <div className="flex-1 flex items-center justify-center text-dark-500 flex-col gap-4">
+              <div className="w-16 h-16 rounded-2xl bg-dark-800 flex items-center justify-center">
+                <svg className="w-8 h-8 text-dark-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                </svg>
+              </div>
+              <p>Select a collection or request to start</p>
+            </div>
+          ) : (
+            <RequestEditor />
+          )}
         </div>
-
-        <p className="text-dark-400 text-lg mb-2">Lightweight API Testing Tool</p>
-        <p className="text-dark-600 text-sm">
-          Backend + Frontend initialized ✓ — Full UI coming in Commit 5
-        </p>
-
-        {/* Status indicators */}
-        <div className="mt-8 flex gap-4 justify-center">
-          <div className="glass-card px-4 py-3 flex items-center gap-2">
-            <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-            <span className="text-sm text-dark-300">Frontend Running</span>
+        
+        {/* Only show response viewer if a request is selected, or always show placeholder. We'll always show for layout demo. */}
+        {(collectionId || requestId) && (
+          <div className="flex-1 min-w-0 flex flex-col border-l border-dark-800">
+            <ResponseViewer />
           </div>
-          <div className="glass-card px-4 py-3 flex items-center gap-2">
-            <div className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />
-            <span className="text-sm text-dark-300">Backend :8080</span>
-          </div>
-        </div>
+        )}
       </div>
-    </div>
-  )
+    </MainLayout>
+  );
 }
 
-export default Dashboard
+export default Dashboard;
