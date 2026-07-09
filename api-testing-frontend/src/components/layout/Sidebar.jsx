@@ -7,6 +7,7 @@ import toast from 'react-hot-toast';
 const Sidebar = () => {
   const [collections, setCollections] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
+  const [isLoading, setIsLoading] = useState(true);
   const [isCreating, setIsCreating] = useState(false);
   const [newCollectionName, setNewCollectionName] = useState('');
   const [editingId, setEditingId] = useState(null);
@@ -19,11 +20,14 @@ const Sidebar = () => {
   }, [requestId]);
 
   const fetchCollections = async () => {
+    setIsLoading(true);
     try {
       const data = await collectionService.getAll();
       setCollections(data);
     } catch (error) {
       toast.error('Failed to load collections');
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -185,88 +189,111 @@ const Sidebar = () => {
         )}
 
         <div className="space-y-3">
-          {filteredCollections.map(collection => (
-            <div key={collection.id} className="flex flex-col gap-1">
-              {/* Collection Header */}
-              <div 
-                className={`group flex items-center justify-between p-2 rounded-lg cursor-pointer transition-colors ${parseInt(collectionId) === collection.id ? 'bg-dark-800/40 text-white' : 'text-dark-300 hover:bg-dark-800/20 hover:text-dark-100'}`}
-              >
-                <div className="flex items-center gap-2 overflow-hidden flex-1" onClick={() => navigate(`/collections/${collection.id}`)}>
-                  <FiFolder className={parseInt(collectionId) === collection.id ? 'text-primary-500' : 'text-dark-400'} />
-                  {editingId === collection.id ? (
-                    <input
-                      autoFocus
-                      type="text"
-                      value={editName}
-                      onChange={(e) => setEditName(e.target.value)}
-                      onBlur={() => handleUpdate(collection.id)}
-                      onKeyDown={(e) => e.key === 'Enter' && handleUpdate(collection.id)}
-                      className="bg-dark-950 border border-primary-500 rounded px-1 text-sm w-full outline-none"
-                      onClick={(e) => e.stopPropagation()}
-                    />
-                  ) : (
-                    <span className="truncate text-sm font-semibold">{collection.name}</span>
+          {isLoading ? (
+            <div className="space-y-4 p-2 animate-pulse">
+              {[1, 2, 3].map(i => (
+                <div key={i} className="space-y-2">
+                  <div className="flex items-center gap-2">
+                    <div className="w-4 h-4 bg-dark-700 dark:bg-dark-800 rounded"></div>
+                    <div className="h-4 bg-dark-700 dark:bg-dark-800 rounded w-2/3"></div>
+                  </div>
+                  <div className="pl-6 space-y-1.5">
+                    <div className="flex items-center gap-2">
+                      <div className="w-8 h-3 bg-dark-800 dark:bg-dark-850 rounded"></div>
+                      <div className="h-3 bg-dark-800 dark:bg-dark-850 rounded w-1/2"></div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="w-8 h-3 bg-dark-800 dark:bg-dark-850 rounded"></div>
+                      <div className="h-3 bg-dark-800 dark:bg-dark-850 rounded w-1/3"></div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            filteredCollections.map(collection => (
+              <div key={collection.id} className="flex flex-col gap-1">
+                {/* Collection Header */}
+                <div 
+                  className={`group flex items-center justify-between p-2 rounded-lg cursor-pointer transition-colors ${parseInt(collectionId) === collection.id ? 'bg-dark-800/40 text-white' : 'text-dark-300 hover:bg-dark-800/20 hover:text-dark-100'}`}
+                >
+                  <div className="flex items-center gap-2 overflow-hidden flex-1" onClick={() => navigate(`/collections/${collection.id}`)}>
+                    <FiFolder className={parseInt(collectionId) === collection.id ? 'text-primary-500' : 'text-dark-400'} />
+                    {editingId === collection.id ? (
+                      <input
+                        autoFocus
+                        type="text"
+                        value={editName}
+                        onChange={(e) => setEditName(e.target.value)}
+                        onBlur={() => handleUpdate(collection.id)}
+                        onKeyDown={(e) => e.key === 'Enter' && handleUpdate(collection.id)}
+                        className="bg-dark-950 border border-primary-500 rounded px-1 text-sm w-full outline-none"
+                        onClick={(e) => e.stopPropagation()}
+                      />
+                    ) : (
+                      <span className="truncate text-sm font-semibold">{collection.name}</span>
+                    )}
+                  </div>
+
+                  {editingId !== collection.id && (
+                    <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
+                      <button 
+                        onClick={(e) => { e.stopPropagation(); handleNewRequest(collection.id); }}
+                        className="p-1 hover:text-primary-400 rounded"
+                        title="Add Request"
+                      >
+                        <FiPlus size={14} />
+                      </button>
+                      <button 
+                        onClick={(e) => { e.stopPropagation(); startEdit(collection); }}
+                        className="p-1 hover:text-white rounded"
+                        title="Rename"
+                      >
+                        <FiEdit2 size={12} />
+                      </button>
+                      <button 
+                        onClick={(e) => { e.stopPropagation(); handleDelete(collection.id, collection.name); }}
+                        className="p-1 hover:text-red-400 rounded"
+                        title="Delete"
+                      >
+                        <FiTrash2 size={12} />
+                      </button>
+                    </div>
                   )}
                 </div>
 
-                {editingId !== collection.id && (
-                  <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
-                    <button 
-                      onClick={(e) => { e.stopPropagation(); handleNewRequest(collection.id); }}
-                      className="p-1 hover:text-primary-400 rounded"
-                      title="Add Request"
+                {/* Nested Requests */}
+                <div className="pl-4 border-l border-dark-800 ml-4 flex flex-col gap-0.5">
+                  {collection.requests && collection.requests.map(req => (
+                    <div
+                      key={req.id}
+                      onClick={() => navigate(`/requests/${req.id}`)}
+                      className={`group flex items-center justify-between p-1.5 rounded cursor-pointer transition-colors text-xs font-mono ${parseInt(requestId) === req.id ? 'bg-dark-800 text-white' : 'text-dark-400 hover:bg-dark-800/40 hover:text-dark-200'}`}
                     >
-                      <FiPlus size={14} />
-                    </button>
-                    <button 
-                      onClick={(e) => { e.stopPropagation(); startEdit(collection); }}
-                      className="p-1 hover:text-white rounded"
-                      title="Rename"
-                    >
-                      <FiEdit2 size={12} />
-                    </button>
-                    <button 
-                      onClick={(e) => { e.stopPropagation(); handleDelete(collection.id, collection.name); }}
-                      className="p-1 hover:text-red-400 rounded"
-                      title="Delete"
-                    >
-                      <FiTrash2 size={12} />
-                    </button>
-                  </div>
-                )}
-              </div>
-
-              {/* Nested Requests */}
-              <div className="pl-4 border-l border-dark-800 ml-4 flex flex-col gap-0.5">
-                {collection.requests && collection.requests.map(req => (
-                  <div
-                    key={req.id}
-                    onClick={() => navigate(`/requests/${req.id}`)}
-                    className={`group flex items-center justify-between p-1.5 rounded cursor-pointer transition-colors text-xs font-mono ${parseInt(requestId) === req.id ? 'bg-dark-800 text-white' : 'text-dark-400 hover:bg-dark-800/40 hover:text-dark-200'}`}
-                  >
-                    <div className="flex items-center gap-2 overflow-hidden flex-1">
-                      <span className={`font-bold text-[10px] w-8 shrink-0 ${getMethodColor(req.method)}`}>
-                        {req.method}
-                      </span>
-                      <span className="truncate" title={req.name}>{req.name}</span>
+                      <div className="flex items-center gap-2 overflow-hidden flex-1">
+                        <span className={`font-bold text-[10px] w-8 shrink-0 ${getMethodColor(req.method)}`}>
+                          {req.method}
+                        </span>
+                        <span className="truncate" title={req.name}>{req.name}</span>
+                      </div>
+                      <button
+                        onClick={(e) => handleDeleteRequest(e, req.id)}
+                        className="opacity-0 group-hover:opacity-100 transition-opacity p-0.5 hover:text-red-400 rounded shrink-0"
+                      >
+                        <FiTrash2 size={12} />
+                      </button>
                     </div>
-                    <button
-                      onClick={(e) => handleDeleteRequest(e, req.id)}
-                      className="opacity-0 group-hover:opacity-100 transition-opacity p-0.5 hover:text-red-400 rounded shrink-0"
-                    >
-                      <FiTrash2 size={12} />
-                    </button>
-                  </div>
-                ))}
-                {(!collection.requests || collection.requests.length === 0) && (
-                  <div className="text-[10px] text-dark-600 italic py-1 pl-2">
-                    {searchTerm ? 'No matching requests' : 'Empty collection'}
-                  </div>
-                )}
+                  ))}
+                  {(!collection.requests || collection.requests.length === 0) && (
+                    <div className="text-[10px] text-dark-600 italic py-1 pl-2">
+                      {searchTerm ? 'No matching requests' : 'Empty collection'}
+                    </div>
+                  )}
+                </div>
               </div>
-            </div>
-          ))}
-          {filteredCollections.length === 0 && (
+            ))
+          )}
+          {!isLoading && filteredCollections.length === 0 && (
             <div className="text-center p-4 text-dark-500 text-xs">
               No matching collections or requests.
             </div>
