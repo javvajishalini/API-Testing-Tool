@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { FiPlus, FiFolder, FiMoreVertical, FiEdit2, FiTrash2, FiFileText } from 'react-icons/fi';
+import { FiPlus, FiFolder, FiMoreVertical, FiEdit2, FiTrash2, FiSearch } from 'react-icons/fi';
 import { collectionService, requestService } from '../../services/api';
 import { useNavigate, useParams } from 'react-router-dom';
 import toast from 'react-hot-toast';
 
 const Sidebar = () => {
   const [collections, setCollections] = useState([]);
+  const [searchTerm, setSearchTerm] = useState('');
   const [isCreating, setIsCreating] = useState(false);
   const [newCollectionName, setNewCollectionName] = useState('');
   const [editingId, setEditingId] = useState(null);
@@ -15,7 +16,7 @@ const Sidebar = () => {
 
   useEffect(() => {
     fetchCollections();
-  }, [requestId]); // Refetch if requests change/are added
+  }, [requestId]);
 
   const fetchCollections = async () => {
     try {
@@ -84,9 +85,7 @@ const Sidebar = () => {
         queryParams: '[]',
         body: ''
       });
-      // Refresh list
       fetchCollections();
-      // Navigate to the new request
       navigate(`/requests/${newReq.id}`);
       toast.success('Request created');
     } catch (error) {
@@ -120,8 +119,27 @@ const Sidebar = () => {
     }
   };
 
+  // Filter collections and their nested requests based on the search query
+  const filteredCollections = collections.map(col => {
+    const matchesCollectionName = col.name.toLowerCase().includes(searchTerm.toLowerCase());
+    
+    const matchingRequests = (col.requests || []).filter(req => 
+      req.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
+      (req.url && req.url.toLowerCase().includes(searchTerm.toLowerCase()))
+    );
+
+    if (matchesCollectionName || matchingRequests.length > 0) {
+      return {
+        ...col,
+        requests: searchTerm ? matchingRequests : col.requests
+      };
+    }
+    return null;
+  }).filter(Boolean);
+
   return (
     <div className="w-64 bg-dark-900 border-r border-dark-800 flex flex-col h-full shrink-0">
+      {/* Header */}
       <div className="p-4 flex items-center justify-between border-b border-dark-800 bg-dark-950 shrink-0">
         <h2 className="font-semibold text-dark-200">Collections</h2>
         <button 
@@ -133,6 +151,23 @@ const Sidebar = () => {
         </button>
       </div>
 
+      {/* Search Input Bar */}
+      <div className="p-2 border-b border-dark-800 bg-dark-950/50 shrink-0 flex items-center gap-2">
+        <div className="relative w-full">
+          <span className="absolute inset-y-0 left-0 pl-2.5 flex items-center text-dark-500">
+            <FiSearch size={14} />
+          </span>
+          <input
+            type="text"
+            placeholder="Search collections, requests..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="w-full bg-dark-850 hover:bg-dark-800 focus:bg-dark-800 border border-dark-750 text-white rounded pl-8 pr-3 py-1.5 outline-none focus:border-primary-500 text-xs transition-colors font-sans"
+          />
+        </div>
+      </div>
+
+      {/* Collections & Requests List */}
       <div className="flex-1 overflow-y-auto p-2 custom-scrollbar">
         {isCreating && (
           <form onSubmit={handleCreate} className="flex items-center gap-2 mb-2 p-2 bg-dark-800 rounded-lg">
@@ -150,7 +185,7 @@ const Sidebar = () => {
         )}
 
         <div className="space-y-3">
-          {collections.map(collection => (
+          {filteredCollections.map(collection => (
             <div key={collection.id} className="flex flex-col gap-1">
               {/* Collection Header */}
               <div 
@@ -213,7 +248,7 @@ const Sidebar = () => {
                       <span className={`font-bold text-[10px] w-8 shrink-0 ${getMethodColor(req.method)}`}>
                         {req.method}
                       </span>
-                      <span className="truncate">{req.name}</span>
+                      <span className="truncate" title={req.name}>{req.name}</span>
                     </div>
                     <button
                       onClick={(e) => handleDeleteRequest(e, req.id)}
@@ -225,15 +260,15 @@ const Sidebar = () => {
                 ))}
                 {(!collection.requests || collection.requests.length === 0) && (
                   <div className="text-[10px] text-dark-600 italic py-1 pl-2">
-                    Empty collection
+                    {searchTerm ? 'No matching requests' : 'Empty collection'}
                   </div>
                 )}
               </div>
             </div>
           ))}
-          {collections.length === 0 && !isCreating && (
-            <div className="text-center p-4 text-dark-500 text-sm">
-              No collections found.
+          {filteredCollections.length === 0 && (
+            <div className="text-center p-4 text-dark-500 text-xs">
+              No matching collections or requests.
             </div>
           )}
         </div>
