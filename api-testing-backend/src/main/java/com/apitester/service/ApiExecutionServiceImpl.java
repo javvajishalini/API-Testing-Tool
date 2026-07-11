@@ -75,10 +75,20 @@ public class ApiExecutionServiceImpl implements ApiExecutionService {
 
             // Prepare Headers
             HttpHeaders headers = new HttpHeaders();
+            boolean hasUserAgent = false;
+            
             if (requestDto.getHeaders() != null) {
                 for (Map.Entry<String, String> entry : requestDto.getHeaders().entrySet()) {
                     headers.add(entry.getKey(), entry.getValue());
+                    if ("user-agent".equalsIgnoreCase(entry.getKey())) {
+                        hasUserAgent = true;
+                    }
                 }
+            }
+            
+            // Many APIs (like httpbin) block requests without a proper User-Agent
+            if (!hasUserAgent) {
+                headers.add(HttpHeaders.USER_AGENT, "APIFlow/1.0");
             }
 
             // Create Entity

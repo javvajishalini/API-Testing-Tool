@@ -115,11 +115,12 @@ const Sidebar = () => {
 
   const getMethodColor = (method) => {
     switch (method?.toUpperCase()) {
-      case 'GET': return 'text-emerald-400';
-      case 'POST': return 'text-amber-400';
-      case 'PUT': return 'text-blue-400';
-      case 'DELETE': return 'text-red-400';
-      default: return 'text-purple-400';
+      case 'GET': return 'text-get';
+      case 'POST': return 'text-post';
+      case 'PUT': return 'text-put';
+      case 'DELETE': return 'text-delete';
+      case 'PATCH': return 'text-patch';
+      default: return 'text-primary-400';
     }
   };
 
@@ -183,8 +184,13 @@ const Sidebar = () => {
               onChange={(e) => setNewCollectionName(e.target.value)}
               placeholder="Collection name..."
               className="bg-transparent border-none outline-none text-sm w-full text-white"
-              onBlur={() => { if(!newCollectionName) setIsCreating(false); }}
             />
+            <button type="submit" className="text-[10px] bg-primary-600 hover:bg-primary-500 text-white px-2 py-1 rounded shrink-0">
+              Save
+            </button>
+            <button type="button" onClick={() => { setIsCreating(false); setNewCollectionName(''); }} className="text-xs text-dark-400 hover:text-white px-1">
+              ✕
+            </button>
           </form>
         )}
 
