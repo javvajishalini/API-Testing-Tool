@@ -90,6 +90,24 @@ You can now create new requests, explore response details, and organize them int
 
 ---
 
+## How It Works
+
+APIFlow follows a **client‑server** architecture:
+
+1. **Frontend (React + Vite)** – Provides an intuitive UI where users compose API requests. Axios sends HTTP calls to the Spring Boot backend.
+2. **Backend (Spring Boot)** – Receives request details, forwards them to the target API using `RestTemplate`, captures the raw response, and persists request/collection data in PostgreSQL via Spring Data JPA.
+3. **Database (PostgreSQL)** – Stores collections, saved requests, and optional environment variables.
+4. **Swagger UI** – Auto‑generated from the Spring controllers, allowing developers to explore the internal API.
+
+The flow:
+
+- User clicks **Send** → Frontend sends request payload to `/api/request` endpoint.
+- Backend forwards the payload to the external API, measures response time, status, headers, body.
+- Backend returns a structured JSON response to the frontend.
+- Frontend renders the response with syntax‑highlighted JSON, shows timing, status, and lets the user save the request to a collection.
+
+---
+
 ## Future Enhancements
 - Authentication support (Bearer token, Basic Auth, API Key)
 - Environment variable management
