@@ -4,6 +4,7 @@ import MainLayout from '../components/layout/MainLayout';
 import RequestEditor from '../components/editor/RequestEditor';
 import ResponseViewer from '../components/viewer/ResponseViewer';
 import { requestService, collectionService } from '../services/api';
+import { useEnvironment } from '../contexts/EnvironmentContext';
 import toast from 'react-hot-toast';
 
 function Dashboard() {
@@ -14,6 +15,7 @@ function Dashboard() {
   const [activeRequest, setActiveRequest] = useState(null);
   const [response, setResponse] = useState(null);
   const [isExecuting, setIsExecuting] = useState(false);
+  const { resolveString } = useEnvironment();
 
   useEffect(() => {
     fetchCollections();
@@ -72,8 +74,17 @@ function Dashboard() {
     setResponse(null);
     let finalResponse = null;
 
+    // Resolve any {{variables}} before sending to backend
+    const evaluatedRequest = {
+      ...requestData,
+      url: resolveString(requestData.url),
+      headers: resolveString(requestData.headers),
+      queryParams: resolveString(requestData.queryParams),
+      body: resolveString(requestData.body)
+    };
+
     try {
-      const result = await requestService.execute(requestData);
+      const result = await requestService.execute(evaluatedRequest);
       finalResponse = result;
       setResponse(result);
     } catch (error) {
