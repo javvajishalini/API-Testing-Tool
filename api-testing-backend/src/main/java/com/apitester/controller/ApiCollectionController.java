@@ -38,6 +38,12 @@ public class ApiCollectionController {
         return ResponseEntity.ok(collectionService.updateCollection(id, collectionDto));
     }
 
+    @PatchMapping("/{id}")
+    public ResponseEntity<ApiCollectionDto> patchCollection(@PathVariable Long id, @RequestBody ApiCollectionDto collectionDto) {
+        // For now, treat PATCH the same as PUT – service updates fields that are present.
+        return ResponseEntity.ok(collectionService.updateCollection(id, collectionDto));
+    }
+
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteCollection(@PathVariable Long id) {
         collectionService.deleteCollection(id);
