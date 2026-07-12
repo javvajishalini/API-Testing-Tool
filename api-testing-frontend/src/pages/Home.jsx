@@ -46,7 +46,7 @@ const Home = () => {
         </Link>
 
         <div className="relative z-10 grid grid-cols-1 md:grid-cols-3 gap-6 w-full max-w-4xl">
-          <Link to="/dashboard" className="group flex flex-col items-center p-6 bg-white/60 dark:bg-dark-800/60 backdrop-blur-sm border border-slate-200 dark:border-dark-700/50 rounded-xl hover:border-primary-500/50 dark:hover:border-primary-500/50 hover:bg-white dark:hover:bg-dark-800/80 transition-all duration-300 hover:-translate-y-1 shadow-sm hover:shadow-md">
+          <Link to="/history" className="group flex flex-col items-center p-6 bg-white/60 dark:bg-dark-800/60 backdrop-blur-sm border border-slate-200 dark:border-dark-700/50 rounded-xl hover:border-primary-500/50 dark:hover:border-primary-500/50 hover:bg-white dark:hover:bg-dark-800/80 transition-all duration-300 hover:-translate-y-1 shadow-sm hover:shadow-md">
             <div className="p-3 bg-slate-100 dark:bg-dark-700/50 rounded-lg mb-4 group-hover:bg-primary-50 dark:group-hover:bg-primary-600/20 transition-colors">
               <FiClock size={28} className="text-primary-600 dark:text-primary-400" />
             </div>

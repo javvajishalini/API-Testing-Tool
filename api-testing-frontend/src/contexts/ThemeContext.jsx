@@ -53,7 +53,7 @@ export function ThemeProvider({ children }) {
 
   const [colorTheme, setColorTheme] = useState(() => {
     const saved = localStorage.getItem('apiflow-color')
-    return THEMES[saved] ? saved : 'indigo'
+    return THEMES[saved] ? saved : 'emerald'
   })
 
   useEffect(() => {

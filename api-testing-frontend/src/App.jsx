@@ -4,6 +4,7 @@ import { AppProvider } from './contexts/AppContext'
 import Dashboard from './pages/Dashboard'
 import Settings from './pages/Settings'
 import Home from './pages/Home'
+import History from './pages/History'
 import NotFound from './pages/NotFound'
 
 /**
@@ -20,6 +21,7 @@ function App() {
           <Route path="/collections"               element={<Dashboard />} />
           <Route path="/collections/:collectionId" element={<Dashboard />} />
           <Route path="/requests/:requestId"       element={<Dashboard />} />
+          <Route path="/history"                   element={<History />} />
           <Route path="/settings"                  element={<Settings />} />
           <Route path="*"                          element={<NotFound />} />
         </Routes>

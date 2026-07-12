@@ -70,21 +70,45 @@ function Dashboard() {
   const handleExecute = async (requestData) => {
     setIsExecuting(true);
     setResponse(null);
+    let finalResponse = null;
+
     try {
       const result = await requestService.execute(requestData);
+      finalResponse = result;
       setResponse(result);
     } catch (error) {
       toast.error('Execution failed: ' + (error.response?.data?.message || error.message));
-      setResponse({
+      finalResponse = {
         statusCode: 0,
-        statusText: 'Network Error',
-        body: 'Failed to reach the backend proxy. Is it running?',
+        statusText: 'Error',
+        body: 'Failed to reach backend',
         timeMs: 0,
         sizeBytes: 0,
         headers: {}
-      });
+      };
+      setResponse(finalResponse);
     } finally {
       setIsExecuting(false);
+      
+      // Save to history
+      try {
+        const historyItem = {
+          requestId: requestData.id,
+          method: requestData.method,
+          url: requestData.url,
+          timestamp: new Date().toISOString(),
+          statusCode: finalResponse.statusCode,
+          statusText: finalResponse.statusText,
+          timeMs: finalResponse.timeMs
+        };
+        const saved = localStorage.getItem('apiflow-history');
+        const history = saved ? JSON.parse(saved) : [];
+        // Add to beginning, keep last 50
+        const newHistory = [historyItem, ...history].slice(0, 50);
+        localStorage.setItem('apiflow-history', JSON.stringify(newHistory));
+      } catch (e) {
+        console.error('Failed to save history', e);
+      }
     }
   };
 
