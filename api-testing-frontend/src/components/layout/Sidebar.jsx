@@ -69,7 +69,7 @@ const Sidebar = () => {
         await collectionService.delete(id);
         setCollections(collections.filter(c => c.id !== id));
         if (parseInt(collectionId) === id) {
-          navigate('/');
+          navigate('/dashboard');
         }
         toast.success('Collection deleted');
       } catch (error) {
@@ -104,7 +104,7 @@ const Sidebar = () => {
         await requestService.delete(reqId);
         fetchCollections();
         if (parseInt(requestId) === reqId) {
-          navigate('/');
+          navigate('/dashboard');
         }
         toast.success('Request deleted');
       } catch (error) {
