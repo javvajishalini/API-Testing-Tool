@@ -425,11 +425,7 @@ Full interactive documentation is available via Swagger UI at:
 
 ---
 
-## License
 
-This project is licensed under the **MIT License** – see the [LICENSE](LICENSE) file for details.
-
----
 
 ## Author
 
@@ -437,8 +433,4 @@ This project is licensed under the **MIT License** – see the [LICENSE](LICENSE
 
 ---
 
-<div align="center">
 
-*If you find APIFlow useful, please consider giving it a ⭐ on GitHub!*
-
-</div>
