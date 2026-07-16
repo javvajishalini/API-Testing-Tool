@@ -10,6 +10,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/collections")
+@CrossOrigin("*")
 public class ApiCollectionController {
 
     private final ApiCollectionService collectionService;

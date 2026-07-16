@@ -10,6 +10,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/requests")
+@CrossOrigin("*")
 public class ApiRequestController {
 
     private final ApiRequestService requestService;

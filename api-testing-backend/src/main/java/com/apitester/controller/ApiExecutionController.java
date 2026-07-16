@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/execute")
+@CrossOrigin("*")
 public class ApiExecutionController {
 
     private final ApiExecutionService executionService;
