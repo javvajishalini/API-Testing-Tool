@@ -14,6 +14,9 @@ import org.springframework.web.util.UriComponentsBuilder;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.springframework.http.converter.StringHttpMessageConverter;
+import java.nio.charset.StandardCharsets;
+
 @Service
 public class ApiExecutionServiceImpl implements ApiExecutionService {
 
@@ -21,6 +24,10 @@ public class ApiExecutionServiceImpl implements ApiExecutionService {
 
     public ApiExecutionServiceImpl() {
         this.restTemplate = new RestTemplate();
+        this.restTemplate.getMessageConverters()
+            .removeIf(converter -> converter instanceof StringHttpMessageConverter);
+        this.restTemplate.getMessageConverters()
+            .add(0, new StringHttpMessageConverter(StandardCharsets.UTF_8));
     }
 
     @Override
