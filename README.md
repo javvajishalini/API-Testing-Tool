@@ -73,7 +73,7 @@ Craft requests, view formatted responses, and organize collections — all in on
 | **Spring Boot 3** | Application framework & auto-configuration |
 | **Spring Web** | REST controller layer & `RestTemplate` proxy |
 | **Spring Data JPA** | ORM & repository abstraction |
-| **PostgreSQL** | Persistent storage for requests & collections |
+| **[Neon](https://neon.tech)** | Serverless PostgreSQL — persistent storage for requests & collections |
 | **SpringDoc / Swagger UI** | Interactive API documentation |
 | **Maven** | Build & dependency management |
 
@@ -97,7 +97,7 @@ graph TB
         PROXY["Execution Service\nRestTemplate Proxy"]
     end
 
-    subgraph DB["🐘 PostgreSQL"]
+    subgraph DB["☁️ Neon Serverless PostgreSQL"]
         T1["api_collection"]
         T2["api_request"]
     end
@@ -126,7 +126,7 @@ sequenceDiagram
     participant FE as React Frontend
     participant BE as Spring Boot Backend
     participant EXT as External API
-    participant DB as PostgreSQL
+    participant DB as Neon DB
 
     User->>FE: Fill method, URL, headers, body
     User->>FE: Click "Send"
@@ -327,7 +327,7 @@ API-Testing-Tool/
 | Node.js | ≥ 18 |
 | Java JDK | ≥ 17 |
 | Maven | ≥ 3.8 |
-| PostgreSQL | ≥ 14 |
+| [Neon](https://neon.tech) account | Free tier available (serverless PostgreSQL) |
 
 ### Backend Setup
 
@@ -336,13 +336,12 @@ API-Testing-Tool/
 git clone https://github.com/javvajishalini/API-Testing-Tool.git
 cd API-Testing-Tool/api-testing-backend
 
-# Create a PostgreSQL database
-createdb api_flow_db
+# Create a Neon project at https://neon.tech and copy the connection string
 
 # Review / update DB credentials
 # → src/main/resources/application.properties
-#   spring.datasource.url=jdbc:postgresql://localhost:5432/api_flow_db
-#   spring.datasource.username=your_user
+#   spring.datasource.url=jdbc:postgresql://<your-neon-host>.neon.tech/api_flow_db?sslmode=require
+#   spring.datasource.username=your_neon_user
 #   spring.datasource.password=your_password
 
 # Build and run
@@ -359,7 +358,7 @@ docker build -t api-testing-backend .
 
 # Run the container (replace env values with your own)
 docker run -p 8080:8080 \
-  -e SPRING_DATASOURCE_URL=jdbc:postgresql://host:5432/api_testing_tool \
+  -e SPRING_DATASOURCE_URL=jdbc:postgresql://<your-neon-host>.neon.tech/api_testing_tool?sslmode=require \
   -e SPRING_DATASOURCE_USERNAME=your_user \
   -e SPRING_DATASOURCE_PASSWORD=your_password \
   api-testing-backend
@@ -384,7 +383,7 @@ npm run dev
 
 ## Running the Application
 
-1. Ensure your **PostgreSQL** server is running.
+1. Ensure your **Neon** database is provisioned (always available — serverless).
 2. In **Terminal 1** — start the backend:
    ```bash
    cd api-testing-backend
@@ -399,7 +398,7 @@ npm run dev
 
 ### How It Works
 
-- **Backend**: Spring Boot runs on port 8080, exposing `/api/*` endpoints. It connects to PostgreSQL for persisting collections and requests. The `ApiExecutionService` proxies API calls using `RestTemplate` with UTF‑8 encoding.
+- **Backend**: Spring Boot runs on port 8080, exposing `/api/*` endpoints. It connects to **Neon** (serverless PostgreSQL) for persisting collections and requests. The `ApiExecutionService` proxies API calls using `RestTemplate` with UTF‑8 encoding.
 - **Frontend**: React (Vite) runs on port 5173. All `/api/*` calls are proxied to the backend via `vite.config.js`. The UI lets you build requests, view formatted responses, and save them to collections.
 - **Docker**: You can run the backend in a container; the same environment variables are used for database connectivity.
 - **Full flow**: When you click **Send**, the frontend sends a POST to `/api/execute`. The backend forwards the request to the target API, returns the structured response, which the UI displays. Saving a request sends a POST to `/api/requests`, persisting the data.
