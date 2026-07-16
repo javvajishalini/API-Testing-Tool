@@ -350,6 +350,22 @@ mvn clean install
 mvn spring-boot:run
 ```
 
+### Docker Setup
+
+```bash
+# Build the Docker image (run from the backend directory)
+cd api-testing-backend
+docker build -t api-testing-backend .
+
+# Run the container (replace env values with your own)
+docker run -p 8080:8080 \
+  -e SPRING_DATASOURCE_URL=jdbc:postgresql://host:5432/api_testing_tool \
+  -e SPRING_DATASOURCE_USERNAME=your_user \
+  -e SPRING_DATASOURCE_PASSWORD=your_password \
+  api-testing-backend
+```
+
+
 > The backend starts on **http://localhost:8080**.
 > Swagger UI is available at **http://localhost:8080/swagger-ui.html**
 
@@ -380,6 +396,14 @@ npm run dev
    npm run dev
    ```
 4. Open **http://localhost:5173** in your browser.
+
+### How It Works
+
+- **Backend**: Spring Boot runs on port 8080, exposing `/api/*` endpoints. It connects to PostgreSQL for persisting collections and requests. The `ApiExecutionService` proxies API calls using `RestTemplate` with UTF‑8 encoding.
+- **Frontend**: React (Vite) runs on port 5173. All `/api/*` calls are proxied to the backend via `vite.config.js`. The UI lets you build requests, view formatted responses, and save them to collections.
+- **Docker**: You can run the backend in a container; the same environment variables are used for database connectivity.
+- **Full flow**: When you click **Send**, the frontend sends a POST to `/api/execute`. The backend forwards the request to the target API, returns the structured response, which the UI displays. Saving a request sends a POST to `/api/requests`, persisting the data.
+
 
 ---
 
