@@ -6,6 +6,7 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.client.JdkClientHttpRequestFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpStatusCodeException;
 import org.springframework.web.client.RestTemplate;
@@ -23,7 +24,9 @@ public class ApiExecutionServiceImpl implements ApiExecutionService {
     private final RestTemplate restTemplate;
 
     public ApiExecutionServiceImpl() {
-        this.restTemplate = new RestTemplate();
+        // Use JdkClientHttpRequestFactory (Java 11+ HttpClient) which natively supports HTTP PATCH
+        JdkClientHttpRequestFactory requestFactory = new JdkClientHttpRequestFactory();
+        this.restTemplate = new RestTemplate(requestFactory);
         this.restTemplate.getMessageConverters()
             .removeIf(converter -> converter instanceof StringHttpMessageConverter);
         this.restTemplate.getMessageConverters()
@@ -55,21 +58,6 @@ public class ApiExecutionServiceImpl implements ApiExecutionService {
             return responseDto;
         }
 
-        // 2. Validate JSON Body if it's not empty
-        String body = requestDto.getBody();
-        if (body != null && !body.trim().isEmpty()) {
-            try {
-                new com.fasterxml.jackson.databind.ObjectMapper().readTree(body);
-            } catch (Exception e) {
-                responseDto.setStatusCode(0);
-                responseDto.setStatusText("INVALID JSON");
-                responseDto.setBody("Request body is not valid JSON:\n" + e.getMessage());
-                responseDto.setTimeMs(0);
-                responseDto.setSizeBytes(0);
-                return responseDto;
-            }
-        }
-
         try {
             // Build URL with Query Params
             UriComponentsBuilder uriBuilder = UriComponentsBuilder.fromHttpUrl(requestDto.getUrl());
@@ -93,15 +81,15 @@ public class ApiExecutionServiceImpl implements ApiExecutionService {
                 }
             }
             
-            // Many APIs (like httpbin) block requests without a proper User-Agent
+            // Add User-Agent header if not explicitly provided
             if (!hasUserAgent) {
                 headers.add(HttpHeaders.USER_AGENT, "APIFlow/1.0");
             }
 
-            // Create Entity
+            // Create HttpEntity with request body
             HttpEntity<String> entity = new HttpEntity<>(requestDto.getBody(), headers);
 
-            // Execute Request
+            // Execute Request (Supports GET, POST, PUT, DELETE, PATCH)
             HttpMethod method = HttpMethod.valueOf(requestDto.getMethod().toUpperCase());
             ResponseEntity<String> responseEntity = restTemplate.exchange(finalUrl, method, entity, String.class);
 
@@ -121,7 +109,7 @@ public class ApiExecutionServiceImpl implements ApiExecutionService {
             responseDto.setSizeBytes(e.getResponseBodyAsByteArray() != null ? e.getResponseBodyAsByteArray().length : 0);
             
         } catch (Exception e) {
-            // Handle network errors or invalid URLs
+            // Handle network errors or invalid execution
             responseDto.setStatusCode(0);
             responseDto.setStatusText("ERROR");
             responseDto.setBody(e.getMessage());
