@@ -1,7 +1,18 @@
 import axios from 'axios';
 
+const getBaseUrl = () => {
+  if (import.meta.env.VITE_API_BASE_URL) {
+    return import.meta.env.VITE_API_BASE_URL;
+  }
+  // Default fallback for development vs production
+  return window.location.hostname === 'localhost' 
+    ? 'http://localhost:8090/api'
+    : '/api';
+};
+
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL || '/api',
+  baseURL: getBaseUrl(),
+  timeout: 60000, // 60s timeout for Render free tier cold starts
   headers: {
     'Content-Type': 'application/json',
   },

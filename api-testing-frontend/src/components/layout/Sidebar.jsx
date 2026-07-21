@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { FiPlus, FiFolder, FiMoreVertical, FiEdit2, FiTrash2, FiSearch } from 'react-icons/fi';
+import { FiPlus, FiFolder, FiEdit2, FiTrash2, FiSearch, FiRefreshCw } from 'react-icons/fi';
 import { collectionService, requestService } from '../../services/api';
 import { useNavigate, useParams } from 'react-router-dom';
 import toast from 'react-hot-toast';
@@ -8,6 +8,7 @@ const Sidebar = () => {
   const [collections, setCollections] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [isLoading, setIsLoading] = useState(true);
+  const [isError, setIsError] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
   const [newCollectionName, setNewCollectionName] = useState('');
   const [editingId, setEditingId] = useState(null);
@@ -21,11 +22,13 @@ const Sidebar = () => {
 
   const fetchCollections = async () => {
     setIsLoading(true);
+    setIsError(false);
     try {
       const data = await collectionService.getAll();
       setCollections(data);
     } catch (error) {
-      toast.error('Failed to load collections');
+      setIsError(true);
+      toast.error('Failed to load collections. Check server connection or VITE_API_BASE_URL.');
     } finally {
       setIsLoading(false);
     }
@@ -115,16 +118,15 @@ const Sidebar = () => {
 
   const getMethodColor = (method) => {
     switch (method?.toUpperCase()) {
-      case 'GET': return 'text-get';
-      case 'POST': return 'text-post';
-      case 'PUT': return 'text-put';
-      case 'DELETE': return 'text-delete';
-      case 'PATCH': return 'text-patch';
+      case 'GET': return 'text-emerald-400';
+      case 'POST': return 'text-amber-400';
+      case 'PUT': return 'text-blue-400';
+      case 'DELETE': return 'text-rose-400';
+      case 'PATCH': return 'text-purple-400';
       default: return 'text-primary-400';
     }
   };
 
-  // Filter collections and their nested requests based on the search query
   const filteredCollections = collections.map(col => {
     const matchesCollectionName = col.name.toLowerCase().includes(searchTerm.toLowerCase());
     
@@ -146,14 +148,23 @@ const Sidebar = () => {
     <div className="w-64 bg-dark-900 border-r border-dark-800 flex flex-col h-full shrink-0">
       {/* Header */}
       <div className="p-4 flex items-center justify-between border-b border-dark-800 bg-dark-950 shrink-0">
-        <h2 className="font-semibold text-dark-200">Collections</h2>
-        <button 
-          onClick={() => setIsCreating(true)}
-          className="p-1 hover:bg-dark-800 rounded text-dark-400 hover:text-white transition-colors"
-          title="New Collection"
-        >
-          <FiPlus />
-        </button>
+        <h2 className="font-semibold text-dark-200 text-sm">Collections</h2>
+        <div className="flex items-center gap-1">
+          <button 
+            onClick={fetchCollections}
+            className="p-1 hover:bg-dark-800 rounded text-dark-400 hover:text-white transition-colors"
+            title="Refresh Collections"
+          >
+            <FiRefreshCw size={13} className={isLoading ? 'animate-spin' : ''} />
+          </button>
+          <button 
+            onClick={() => setIsCreating(true)}
+            className="p-1 hover:bg-dark-800 rounded text-dark-400 hover:text-white transition-colors"
+            title="New Collection"
+          >
+            <FiPlus size={16} />
+          </button>
+        </div>
       </div>
 
       {/* Search Input Bar */}
@@ -164,7 +175,7 @@ const Sidebar = () => {
           </span>
           <input
             type="text"
-            placeholder="Search collections, requests..."
+            placeholder="Search collections..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="w-full bg-dark-850 hover:bg-dark-800 focus:bg-dark-800 border border-dark-750 text-white rounded pl-8 pr-3 py-1.5 outline-none focus:border-primary-500 text-xs transition-colors font-sans"
@@ -183,7 +194,7 @@ const Sidebar = () => {
               value={newCollectionName}
               onChange={(e) => setNewCollectionName(e.target.value)}
               placeholder="Collection name..."
-              className="bg-transparent border-none outline-none text-sm w-full text-white"
+              className="bg-transparent border-none outline-none text-xs w-full text-white"
             />
             <button type="submit" className="text-[10px] bg-primary-600 hover:bg-primary-500 text-white px-2 py-1 rounded shrink-0">
               Save
@@ -200,21 +211,28 @@ const Sidebar = () => {
               {[1, 2, 3].map(i => (
                 <div key={i} className="space-y-2">
                   <div className="flex items-center gap-2">
-                    <div className="w-4 h-4 bg-dark-700 dark:bg-dark-800 rounded"></div>
-                    <div className="h-4 bg-dark-700 dark:bg-dark-800 rounded w-2/3"></div>
+                    <div className="w-4 h-4 bg-dark-800 rounded"></div>
+                    <div className="h-4 bg-dark-800 rounded w-2/3"></div>
                   </div>
                   <div className="pl-6 space-y-1.5">
                     <div className="flex items-center gap-2">
-                      <div className="w-8 h-3 bg-dark-800 dark:bg-dark-850 rounded"></div>
-                      <div className="h-3 bg-dark-800 dark:bg-dark-850 rounded w-1/2"></div>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <div className="w-8 h-3 bg-dark-800 dark:bg-dark-850 rounded"></div>
-                      <div className="h-3 bg-dark-800 dark:bg-dark-850 rounded w-1/3"></div>
+                      <div className="w-8 h-3 bg-dark-850 rounded"></div>
+                      <div className="h-3 bg-dark-850 rounded w-1/2"></div>
                     </div>
                   </div>
                 </div>
               ))}
+            </div>
+          ) : isError ? (
+            <div className="text-center p-4 text-xs text-rose-400 flex flex-col items-center gap-2 border border-rose-500/20 bg-rose-500/5 rounded-lg">
+              <p>Failed to connect to backend service.</p>
+              <button
+                onClick={fetchCollections}
+                className="flex items-center gap-1.5 px-3 py-1 bg-dark-800 hover:bg-dark-750 text-white rounded text-[11px] font-medium border border-dark-700 transition-colors"
+              >
+                <FiRefreshCw size={12} />
+                <span>Retry Connection</span>
+              </button>
             </div>
           ) : (
             filteredCollections.map(collection => (
@@ -233,11 +251,11 @@ const Sidebar = () => {
                         onChange={(e) => setEditName(e.target.value)}
                         onBlur={() => handleUpdate(collection.id)}
                         onKeyDown={(e) => e.key === 'Enter' && handleUpdate(collection.id)}
-                        className="bg-dark-950 border border-primary-500 rounded px-1 text-sm w-full outline-none"
+                        className="bg-dark-950 border border-primary-500 rounded px-1 text-xs w-full outline-none"
                         onClick={(e) => e.stopPropagation()}
                       />
                     ) : (
-                      <span className="truncate text-sm font-semibold">{collection.name}</span>
+                      <span className="truncate text-xs font-semibold">{collection.name}</span>
                     )}
                   </div>
 
@@ -299,7 +317,7 @@ const Sidebar = () => {
               </div>
             ))
           )}
-          {!isLoading && filteredCollections.length === 0 && (
+          {!isLoading && !isError && filteredCollections.length === 0 && (
             <div className="text-center p-4 text-dark-500 text-xs">
               No matching collections or requests.
             </div>
