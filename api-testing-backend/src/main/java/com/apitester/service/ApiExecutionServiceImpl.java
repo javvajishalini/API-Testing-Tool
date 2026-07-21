@@ -2,35 +2,28 @@ package com.apitester.service;
 
 import com.apitester.dto.ExecutionRequestDto;
 import com.apitester.dto.ExecutionResponseDto;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.ResponseEntity;
-import org.springframework.http.client.JdkClientHttpRequestFactory;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.HttpStatusCodeException;
-import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.nio.charset.StandardCharsets;
+import java.time.Duration;
 import java.util.HashMap;
 import java.util.Map;
-
-import org.springframework.http.converter.StringHttpMessageConverter;
-import java.nio.charset.StandardCharsets;
 
 @Service
 public class ApiExecutionServiceImpl implements ApiExecutionService {
 
-    private final RestTemplate restTemplate;
+    private final HttpClient httpClient;
 
     public ApiExecutionServiceImpl() {
-        // Use JdkClientHttpRequestFactory (Java 11+ HttpClient) which natively supports HTTP PATCH
-        JdkClientHttpRequestFactory requestFactory = new JdkClientHttpRequestFactory();
-        this.restTemplate = new RestTemplate(requestFactory);
-        this.restTemplate.getMessageConverters()
-            .removeIf(converter -> converter instanceof StringHttpMessageConverter);
-        this.restTemplate.getMessageConverters()
-            .add(0, new StringHttpMessageConverter(StandardCharsets.UTF_8));
+        this.httpClient = HttpClient.newBuilder()
+                .connectTimeout(Duration.ofSeconds(30))
+                .followRedirects(HttpClient.Redirect.ALWAYS)
+                .build();
     }
 
     @Override
@@ -68,73 +61,73 @@ public class ApiExecutionServiceImpl implements ApiExecutionService {
             }
             String finalUrl = uriBuilder.toUriString();
 
-            // Prepare Headers
-            HttpHeaders headers = new HttpHeaders();
+            // Prepare Request Builder
+            HttpRequest.Builder builder = HttpRequest.newBuilder()
+                    .uri(URI.create(finalUrl))
+                    .timeout(Duration.ofSeconds(60));
+
+            // Set Headers
             boolean hasUserAgent = false;
-            
             if (requestDto.getHeaders() != null) {
                 for (Map.Entry<String, String> entry : requestDto.getHeaders().entrySet()) {
-                    headers.add(entry.getKey(), entry.getValue());
-                    if ("user-agent".equalsIgnoreCase(entry.getKey())) {
-                        hasUserAgent = true;
+                    if (entry.getKey() != null && !entry.getKey().trim().isEmpty() && entry.getValue() != null) {
+                        String keyLower = entry.getKey().toLowerCase().trim();
+                        // Restricted headers managed directly by Java HttpClient runtime
+                        if (keyLower.equals("host") || keyLower.equals("content-length")) {
+                            continue;
+                        }
+                        builder.header(entry.getKey().trim(), entry.getValue());
+                        if (keyLower.equals("user-agent")) {
+                            hasUserAgent = true;
+                        }
                     }
                 }
             }
-            
-            // Add User-Agent header if not explicitly provided
+
             if (!hasUserAgent) {
-                headers.add(HttpHeaders.USER_AGENT, "APIFlow/1.0");
+                builder.header("User-Agent", "APIFlow/1.0");
             }
 
-            // Create HttpEntity with request body
-            HttpEntity<String> entity = new HttpEntity<>(requestDto.getBody(), headers);
+            // Method & Body
+            String method = requestDto.getMethod() != null ? requestDto.getMethod().toUpperCase() : "GET";
+            String bodyStr = requestDto.getBody() != null ? requestDto.getBody() : "";
 
-            // Execute Request (Supports GET, POST, PUT, DELETE, PATCH)
-            HttpMethod method = HttpMethod.valueOf(requestDto.getMethod().toUpperCase());
-            ResponseEntity<String> responseEntity = restTemplate.exchange(finalUrl, method, entity, String.class);
+            HttpRequest.BodyPublisher publisher;
+            if (method.equals("GET") || method.equals("HEAD")) {
+                publisher = HttpRequest.BodyPublishers.noBody();
+            } else if (method.equals("DELETE")) {
+                publisher = bodyStr.trim().isEmpty() 
+                    ? HttpRequest.BodyPublishers.noBody() 
+                    : HttpRequest.BodyPublishers.ofString(bodyStr, StandardCharsets.UTF_8);
+            } else {
+                publisher = HttpRequest.BodyPublishers.ofString(bodyStr, StandardCharsets.UTF_8);
+            }
 
-            populateResponse(responseDto, responseEntity, startTime);
+            builder.method(method, publisher);
 
-        } catch (HttpStatusCodeException e) {
-            // Handle error responses (4xx, 5xx)
-            responseDto.setStatusCode(e.getStatusCode().value());
-            responseDto.setStatusText(e.getStatusCode().toString());
-            responseDto.setBody(e.getResponseBodyAsString());
-            
-            Map<String, String> headers = new HashMap<>();
-            e.getResponseHeaders().forEach((key, value) -> headers.put(key, String.join(", ", value)));
-            responseDto.setHeaders(headers);
-            
-            responseDto.setTimeMs(System.currentTimeMillis() - startTime);
-            responseDto.setSizeBytes(e.getResponseBodyAsByteArray() != null ? e.getResponseBodyAsByteArray().length : 0);
-            
+            // Execute Request via Java 11+ HttpClient (Native PATCH support)
+            HttpResponse<String> response = httpClient.send(builder.build(), HttpResponse.BodyHandlers.ofString());
+
+            long timeMs = System.currentTimeMillis() - startTime;
+            responseDto.setStatusCode(response.statusCode());
+            responseDto.setStatusText(response.statusCode() >= 200 && response.statusCode() < 300 ? "OK" : "Status " + response.statusCode());
+            responseDto.setBody(response.body() != null ? response.body() : "");
+            responseDto.setTimeMs(timeMs);
+            responseDto.setSizeBytes(response.body() != null ? response.body().getBytes(StandardCharsets.UTF_8).length : 0);
+
+            // Extract Headers
+            Map<String, String> responseHeaders = new HashMap<>();
+            response.headers().map().forEach((key, list) -> responseHeaders.put(key, String.join(", ", list)));
+            responseDto.setHeaders(responseHeaders);
+
         } catch (Exception e) {
-            // Handle network errors or invalid execution
             responseDto.setStatusCode(0);
             responseDto.setStatusText("ERROR");
-            responseDto.setBody(e.getMessage());
+            responseDto.setBody("Execution error: " + e.getMessage());
             responseDto.setTimeMs(System.currentTimeMillis() - startTime);
             responseDto.setSizeBytes(0);
         }
 
         return responseDto;
-    }
-
-    private void populateResponse(ExecutionResponseDto responseDto, ResponseEntity<String> responseEntity, long startTime) {
-        responseDto.setStatusCode(responseEntity.getStatusCode().value());
-        responseDto.setStatusText(responseEntity.getStatusCode().toString());
-        responseDto.setBody(responseEntity.getBody());
-        
-        Map<String, String> headers = new HashMap<>();
-        responseEntity.getHeaders().forEach((key, value) -> headers.put(key, String.join(", ", value)));
-        responseDto.setHeaders(headers);
-        
-        responseDto.setTimeMs(System.currentTimeMillis() - startTime);
-        
-        long size = 0;
-        if (responseEntity.getBody() != null) {
-            size = responseEntity.getBody().getBytes().length;
-        }
-        responseDto.setSizeBytes(size);
     }
 }
